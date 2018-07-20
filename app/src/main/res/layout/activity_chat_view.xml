@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    tools:context=".ChatViewActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerChatView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        tools:background="@color/colorAccent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_weight="7"
+        app:layout_constraintBottom_toTopOf="@id/cl_input_chat"/>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/cl_input_chat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recyclerChatView"
+        app:layout_constraintVertical_weight="1"
+        tools:background="#2eccad">
+
+        <ImageButton
+            android:id="@+id/ib_income"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_file_download_pink"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/et_input_chat"
+            app:layout_constraintHorizontal_weight="1"/>
+
+        <EditText
+            android:id="@+id/et_input_chat"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:paddingEnd="6dp"
+            android:paddingStart="6dp"
+            tools:hint="@string/app_name"
+            app:layout_constraintLeft_toRightOf="@id/ib_income"
+            app:layout_constraintRight_toLeftOf="@id/ib_send"
+            app:layout_constraintHorizontal_weight="6"/>
+
+        <ImageButton
+            android:id="@+id/ib_send"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_send_red"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/et_input_chat"
+            app:layout_constraintHorizontal_weight="1"/>
+
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.constraint.ConstraintLayout>
