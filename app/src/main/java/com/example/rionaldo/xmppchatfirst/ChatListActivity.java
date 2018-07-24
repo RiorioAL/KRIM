@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.example.rionaldo.xmppchatfirst.Adapter.ChatListAdapter;
@@ -20,6 +21,7 @@ import butterknife.ButterKnife;
 public class ChatListActivity extends AppCompatActivity implements View.OnClickListener {
     @BindView(R.id.recyclerChatList) RecyclerView recyclerChatList;
     @BindView(R.id.fab_contact) FloatingActionButton fabContact;
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     ChatListAdapter adapter;
     List<ChatListItem> items = new ArrayList<>();
@@ -29,6 +31,9 @@ public class ChatListActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_list);
         ButterKnife.bind(this);
+
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Chat Room List");
 
         ChatListItem item = new ChatListItem("YourName@Server.com","This is where your last message is shown");
         items.add(item);

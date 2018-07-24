@@ -8,7 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
@@ -21,6 +23,7 @@ import butterknife.ButterKnife;
 public class ContactListActivity extends AppCompatActivity implements View.OnClickListener, ContactAdapter.OnItemClick{
     @BindView(R.id.recyclerView_contact) RecyclerView recyclerViewContact;
     @BindView(R.id.fab_add_contact) FloatingActionButton fabAddContact;
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     private ContactAdapter adapter;
 
@@ -30,6 +33,11 @@ public class ContactListActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.activity_contact_list);
         ButterKnife.bind(this);
 
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Friend List");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_pink);
+
         adapter = new ContactAdapter(ContactModel.getInstance(this).getData());
         adapter.setOnItemClick(this);
         recyclerViewContact.setAdapter(adapter);
@@ -37,6 +45,18 @@ public class ContactListActivity extends AppCompatActivity implements View.OnCli
         recyclerViewContact.setLayoutManager(new LinearLayoutManager(this));
 
         fabAddContact.setOnClickListener(this);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            default:
+                break;
+        }
+        return false;
     }
 
     @Override

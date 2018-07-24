@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -22,6 +24,7 @@ public class ChatViewActivity extends AppCompatActivity implements View.OnClickL
     @BindView(R.id.et_input_chat) EditText etInputChat;
     @BindView(R.id.ib_send) ImageButton ibSend;
     @BindView(R.id.ib_income) ImageButton ibIncome;
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     private List<MessageItem> items = new ArrayList<>();
     private MessageAdapter adapter;
@@ -31,6 +34,11 @@ public class ChatViewActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_view);
         ButterKnife.bind(this);
+
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Contact Name");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_pink);
 
         MessageItem receive = new MessageItem();
         receive.setType(0);
@@ -56,6 +64,18 @@ public class ChatViewActivity extends AppCompatActivity implements View.OnClickL
 
         ibIncome.setOnClickListener(this);
         ibSend.setOnClickListener(this);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            default:
+                break;
+        }
+        return false;
     }
 
     @Override
