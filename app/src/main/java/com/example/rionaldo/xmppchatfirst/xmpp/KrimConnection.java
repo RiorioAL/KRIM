@@ -1,9 +1,12 @@
 package com.example.rionaldo.xmppchatfirst.xmpp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.example.rionaldo.xmppchatfirst.DefaultConstant;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
@@ -11,6 +14,7 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
@@ -114,6 +118,9 @@ public class KrimConnection implements ConnectionListener {
         prefs.edit()
                 .putBoolean("xmpp_logged_in",true)
                 .apply();
+
+        Intent intent = new Intent(DefaultConstant.BroadcastMessage.UI_AUTHENTICATED);
+        mAppContext.sendBroadcast(intent);
     }
 
     @Override

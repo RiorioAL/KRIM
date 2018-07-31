@@ -1,6 +1,9 @@
 package com.example.rionaldo.xmppchatfirst;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -42,6 +45,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private String TAG = LoginActivity.class.getSimpleName();
 
+    private BroadcastReceiver receiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,37 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         ButterKnife.bind(this);
 
         btnLogin.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                switch (action){
+                    case DefaultConstant.BroadcastMessage.UI_AUTHENTICATED:
+                        Log.e(TAG, "got a broadcast to show the main app window" );
+                        //show the main app window
+                        pb_loading.setVisibility(View.GONE);
+                        Intent chatListIntent = new Intent(LoginActivity.this,ChatListActivity.class);
+                        startActivity(chatListIntent);
+                        finish();
+                        break;
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DefaultConstant.BroadcastMessage.UI_AUTHENTICATED);
+        this.registerReceiver(receiver,filter);
     }
 
     @Override
