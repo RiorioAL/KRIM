@@ -78,12 +78,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         startActivity(chatListIntent);
                         finish();
                         break;
+
+                    case DefaultConstant.BroadcastMessage.UI_CONNECTION_ERROR:
+                        Log.e(TAG, "got an error when connecting to server" );
+                        etJid.setError("got an Error please check your password and username");
+                        pb_loading.setVisibility(View.GONE);
+                        btnLogin.setVisibility(View.VISIBLE);
+                        break;
                 }
             }
         };
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(DefaultConstant.BroadcastMessage.UI_AUTHENTICATED);
+        filter.addAction(DefaultConstant.BroadcastMessage.UI_CONNECTION_ERROR);
         this.registerReceiver(receiver,filter);
     }
 

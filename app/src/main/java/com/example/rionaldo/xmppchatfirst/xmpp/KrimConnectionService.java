@@ -5,8 +5,11 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.example.rionaldo.xmppchatfirst.DefaultConstant;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -34,7 +37,16 @@ public class KrimConnectionService extends Service {
         try{
             mConnection.connect();
         }catch (IOException | SmackException | XMPPException e){
+
+            Intent intent = new Intent(DefaultConstant.BroadcastMessage.UI_CONNECTION_ERROR);
+            getApplicationContext().sendBroadcast(intent);
+
             Log.e(TAG, "initConnection: ",e );
+
+            boolean loggedInState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                    .getBoolean("xmpp_logged_in",false);
+
+            stopSelf();
         }
     }
 
