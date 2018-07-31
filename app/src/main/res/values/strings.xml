@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">RIM</string>
+    <string name="app_name">KRIM</string>
     <string name="input_jid_placeholder">Input your JID Here</string>
     <string name="input_pass_placeholder">Input your Password Here</string>
     <string name="login">Login</string>

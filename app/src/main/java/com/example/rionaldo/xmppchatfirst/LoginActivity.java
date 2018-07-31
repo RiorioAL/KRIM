@@ -1,7 +1,12 @@
 package com.example.rionaldo.xmppchatfirst;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.example.rionaldo.xmppchatfirst.xmpp.KrimConnectionService;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionListener;
@@ -38,6 +45,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private String TAG = LoginActivity.class.getSimpleName();
 
+    private BroadcastReceiver receiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,105 +57,160 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        this.unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                switch (action){
+                    case DefaultConstant.BroadcastMessage.UI_AUTHENTICATED:
+                        Log.e(TAG, "got a broadcast to show the main app window" );
+                        //show the main app window
+                        pb_loading.setVisibility(View.GONE);
+                        Intent chatListIntent = new Intent(LoginActivity.this,ChatListActivity.class);
+                        startActivity(chatListIntent);
+                        finish();
+                        break;
+
+                    case DefaultConstant.BroadcastMessage.UI_CONNECTION_ERROR:
+                        Log.e(TAG, "got an error when connecting to server" );
+                        etJid.setError("got an Error please check your password and username");
+                        pb_loading.setVisibility(View.GONE);
+                        btnLogin.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DefaultConstant.BroadcastMessage.UI_AUTHENTICATED);
+        filter.addAction(DefaultConstant.BroadcastMessage.UI_CONNECTION_ERROR);
+        this.registerReceiver(receiver,filter);
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.btn_login :{
                 pb_loading.setVisibility(View.VISIBLE);
                 btnLogin.setVisibility(View.GONE);
-                new LoginAsnyc().execute();
+                saveCredentialsAndLogin();
+//                new LoginAsnyc().execute();
                 break;
             }
         }
     }
 
-    public class LoginAsnyc extends AsyncTask<Void,Void,Void>{
-        @Override
-        protected Void doInBackground(Void... voids) {
-            XMPPTCPConnectionConfiguration conConfig = null;
-            String jid = etJid.getText().toString();
-            String[] jidParts = jid.split("@");
-            Log.e(TAG, "doInBackground: "+jidParts[0]+" "+etJidPass.getText().toString()+" "+jidParts[1] );
-            try{
-                conConfig = XMPPTCPConnectionConfiguration.builder()
-                        .setUsernameAndPassword(jidParts[0],etJidPass.getText().toString())
-                        .setXmppDomain(jidParts[1])
-                        .setKeystoreType(null)
-                        .build();
-            }catch (XmppStringprepException e){
-                Log.e(TAG, "run: ",e );
-                e.printStackTrace();
-            }
+    private void saveCredentialsAndLogin(){
+        Log.e(TAG, "saveCredentialsAndLogin: called()" );
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.edit().putString("xmpp_jid",etJid.getText().toString())
+                .putString("xmpp_password",etJidPass.getText().toString())
+                .apply();
 
-            AbstractXMPPConnection connection = new XMPPTCPConnection(conConfig);
-
-            connection.addConnectionListener(new ConnectionListener() {
-                @Override
-                public void connected(XMPPConnection connection) {
-                    Log.e(TAG, "connected: ");
-                }
-
-                @Override
-                public void authenticated(XMPPConnection connection, boolean resumed) {
-                    Log.e(TAG, "authenticated: ");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-//                            pb_loading.setVisibility(View.GONE);
-//                            btnLogin.setVisibility(View.VISIBLE);
-//                            Toast.makeText(LoginActivity.this,"Connected",Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(LoginActivity.this,ChatListActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    });
-                }
-
-                @Override
-                public void connectionClosed() {
-                    Log.e(TAG, "connectionClosed: ");
-                }
-
-                @Override
-                public void connectionClosedOnError(Exception e) {
-                    Log.e(TAG, "connectionClosedOnError: ");
-                }
-
-                @Override
-                public void reconnectionSuccessful() {
-                    Log.e(TAG, "reconnectionSuccessful: ");
-                }
-
-                @Override
-                public void reconnectingIn(int seconds) {
-                    Log.e(TAG, "reconnectingIn: " );
-                }
-
-                @Override
-                public void reconnectionFailed(Exception e) {
-                    Log.e(TAG, "reconnectionFailed: " );
-                }
-            });
-
-            ChatManager chatManager = ChatManager.getInstanceFor(connection);
-            chatManager.addIncomingListener(new IncomingChatMessageListener() {
-                @Override
-                public void newIncomingMessage(EntityBareJid from, final Message message, Chat chat) {
-                    Log.e(TAG, "newIncomingMessage: "+message.getBody() );
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                        }
-                    });
-                }
-            });
-
-            try {
-                connection.connect().login();
-            } catch (XMPPException | SmackException | IOException | InterruptedException e) {
-                Log.e(TAG, "run: ",e );
-                e.printStackTrace();
-            }
-            return null;
-        }
+        //start the service
+        Intent intentService = new Intent(this, KrimConnectionService.class);
+        startService(intentService);
+        //kalau kita ngejalanin start service:
+        //kalau servicenya ga alive nnti dy bakal jalanin onCreate dlu baru onStartCommand
+        //kalau servicenya alive lgsg ke onStartCommand
     }
+
+//    public class LoginAsnyc extends AsyncTask<Void,Void,Void>{
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            XMPPTCPConnectionConfiguration conConfig = null;
+//            String jid = etJid.getText().toString();
+//            String[] jidParts = jid.split("@");
+//            Log.e(TAG, "doInBackground: "+jidParts[0]+" "+etJidPass.getText().toString()+" "+jidParts[1] );
+//            try{
+//                conConfig = XMPPTCPConnectionConfiguration.builder()
+//                        .setUsernameAndPassword(jidParts[0],etJidPass.getText().toString())
+//                        .setXmppDomain(jidParts[1])
+//                        .setKeystoreType(null)
+//                        .build();
+//            }catch (XmppStringprepException e){
+//                Log.e(TAG, "run: ",e );
+//                e.printStackTrace();
+//            }
+//
+//            AbstractXMPPConnection connection = new XMPPTCPConnection(conConfig);
+//
+//            connection.addConnectionListener(new ConnectionListener() {
+//                @Override
+//                public void connected(XMPPConnection connection) {
+//                    Log.e(TAG, "connected: ");
+//                }
+//
+//                @Override
+//                public void authenticated(XMPPConnection connection, boolean resumed) {
+//                    Log.e(TAG, "authenticated: ");
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+////                            pb_loading.setVisibility(View.GONE);
+////                            btnLogin.setVisibility(View.VISIBLE);
+////                            Toast.makeText(LoginActivity.this,"Connected",Toast.LENGTH_SHORT).show();
+//                            Intent intent = new Intent(LoginActivity.this,ChatListActivity.class);
+//                            startActivity(intent);
+//                            finish();
+//                        }
+//                    });
+//                }
+//
+//                @Override
+//                public void connectionClosed() {
+//                    Log.e(TAG, "connectionClosed: ");
+//                }
+//
+//                @Override
+//                public void connectionClosedOnError(Exception e) {
+//                    Log.e(TAG, "connectionClosedOnError: ");
+//                }
+//
+//                @Override
+//                public void reconnectionSuccessful() {
+//                    Log.e(TAG, "reconnectionSuccessful: ");
+//                }
+//
+//                @Override
+//                public void reconnectingIn(int seconds) {
+//                    Log.e(TAG, "reconnectingIn: " );
+//                }
+//
+//                @Override
+//                public void reconnectionFailed(Exception e) {
+//                    Log.e(TAG, "reconnectionFailed: " );
+//                }
+//            });
+//
+//            ChatManager chatManager = ChatManager.getInstanceFor(connection);
+//            chatManager.addIncomingListener(new IncomingChatMessageListener() {
+//                @Override
+//                public void newIncomingMessage(EntityBareJid from, final Message message, Chat chat) {
+//                    Log.e(TAG, "newIncomingMessage: "+message.getBody() );
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                        }
+//                    });
+//                }
+//            });
+//
+//            try {
+//                connection.connect().login();
+//            } catch (XMPPException | SmackException | IOException | InterruptedException e) {
+//                Log.e(TAG, "run: ",e );
+//                e.printStackTrace();
+//            }
+//            return null;
+//        }
+//    }
 }
